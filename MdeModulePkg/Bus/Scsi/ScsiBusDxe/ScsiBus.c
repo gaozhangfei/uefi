@@ -311,11 +311,11 @@ SCSIBusDriverBindingStart (
   BOOLEAN                               FromFirstTarget;
   BOOLEAN                               ExtScsiSupport;
   EFI_STATUS                            Status;
-  EFI_STATUS                            DevicePathStatus;
+  EFI_STATUS                            DevicePathStatus = 0;
   EFI_STATUS                            PassThruStatus;
   SCSI_BUS_DEVICE                       *ScsiBusDev;
   SCSI_TARGET_ID                        ScsiTargetId;
-  EFI_DEVICE_PATH_PROTOCOL              *ParentDevicePath;
+  EFI_DEVICE_PATH_PROTOCOL              *ParentDevicePath = NULL;
   EFI_SCSI_PASS_THRU_PROTOCOL           *ScsiInterface;
   EFI_EXT_SCSI_PASS_THRU_PROTOCOL       *ExtScsiInterface;
   EFI_SCSI_BUS_PROTOCOL                 *BusIdentify;
@@ -328,7 +328,7 @@ SCSIBusDriverBindingStart (
   
   TargetId = &ScsiTargetId.ScsiId.ExtScsi[0];
   SetMem (TargetId, TARGET_MAX_BYTES, 0xFF);
-  
+#if 0
   DevicePathStatus = gBS->OpenProtocol (
                             Controller,
                             &gEfiDevicePathProtocolGuid,
@@ -349,7 +349,7 @@ SCSIBusDriverBindingStart (
     (EFI_IO_BUS_SCSI | EFI_IOB_PC_INIT),
     ParentDevicePath
     );  
-
+#endif
   //
   // To keep backward compatibility, UEFI ExtPassThru Protocol is supported as well as 
   // EFI PassThru Protocol. From priority perspective, ExtPassThru Protocol is firstly
