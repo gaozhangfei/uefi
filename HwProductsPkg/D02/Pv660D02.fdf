@@ -224,6 +224,9 @@ READ_LOCK_STATUS   = TRUE
   INF MdeModulePkg/Universal/Disk/UnicodeCollation/EnglishDxe/EnglishDxe.inf
   INF IntelFrameworkModulePkg/Universal/StatusCode/RuntimeDxe/StatusCodeRuntimeDxe.inf
 
+  INF HwPkg/Drivers/SasV1Dxe/SasV1Dxe.inf
+  INF MdeModulePkg/Bus/Scsi/ScsiBusDxe/ScsiBusDxe.inf
+  INF MdeModulePkg/Bus/Scsi/ScsiDiskDxe/ScsiDiskDxe.inf
 
   INF MdeModulePkg/Universal/SmbiosDxe/SmbiosDxe.inf
   INF HwPkg/Drivers/SmbiosMiscDxe/SmbiosMiscDxe.inf
@@ -274,9 +277,8 @@ READ_LOCK_STATUS   = TRUE
   #
   #Sata
   #
-  #INF HwPkg/Drivers/AtaAtapiPassThru/AtaAtapiPassThru.inf
-  INF HwProductsPkg/D02/Drivers/AtaAtapiPassThru/AtaAtapiPassThru.inf
-  INF MdeModulePkg/Bus/Ata/AtaBusDxe/AtaBusDxe.inf
+  #INF HwProductsPkg/D02/Drivers/AtaAtapiPassThru/AtaAtapiPassThru.inf
+  #INF MdeModulePkg/Bus/Ata/AtaBusDxe/AtaBusDxe.inf
 
   #
   # USB Support

@@ -51,6 +51,7 @@
   DpcLib|MdeModulePkg/Library/DxeDpcLib/DxeDpcLib.inf
   HiiLib|MdeModulePkg/Library/UefiHiiLib/UefiHiiLib.inf
   UefiHiiServicesLib|MdeModulePkg/Library/UefiHiiServicesLib/UefiHiiServicesLib.inf
+  UefiScsiLib|MdePkg/Library/UefiScsiLib/UefiScsiLib.inf
   UdpIoLib|MdeModulePkg/Library/DxeUdpIoLib/DxeUdpIoLib.inf
   IpIoLib|MdeModulePkg/Library/DxeIpIoLib/DxeIpIoLib.inf
 
@@ -204,6 +205,10 @@
   
   gHwTokenSpaceGuid.PcdSlotPerChannelNum|0x2
   
+  # Sas1
+  gHwTokenSpaceGuid.PcdSasBaseAddress|0xb1000000
+  gHwTokenSpaceGuid.PcdSasCtrlBaseAddress|0xb0000000
+
   #
   # ARM PL390 General Interrupt Controller
   #
@@ -469,6 +474,11 @@
   MdeModulePkg/Universal/Disk/PartitionDxe/PartitionDxe.inf
   MdeModulePkg/Universal/Disk/UnicodeCollation/EnglishDxe/EnglishDxe.inf
 
+  HwPkg/Drivers/SasV1Dxe/SasV1Dxe.inf
+  MdeModulePkg/Bus/Scsi/ScsiBusDxe/ScsiBusDxe.inf
+  MdeModulePkg/Bus/Scsi/ScsiDiskDxe/ScsiDiskDxe.inf
+
+
   #HwPkg/Override/EmbeddedPkg/Ebl/Ebl.inf
   HwProductsPkg/D02/Ebl/Ebl.inf
   #c00213799 secure boot test
@@ -481,9 +491,8 @@
   #HwPkg/Network/OemFtp/OemFtp.inf
 
 
-  #HwPkg/Drivers/AtaAtapiPassThru/AtaAtapiPassThru.inf
-  HwProductsPkg/D02/Drivers/AtaAtapiPassThru/AtaAtapiPassThru.inf
-  MdeModulePkg/Bus/Ata/AtaBusDxe/AtaBusDxe.inf
+  #HwProductsPkg/D02/Drivers/AtaAtapiPassThru/AtaAtapiPassThru.inf
+  #MdeModulePkg/Bus/Ata/AtaBusDxe/AtaBusDxe.inf
 
 
   #

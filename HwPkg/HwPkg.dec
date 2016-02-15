@@ -126,6 +126,10 @@
   gHwTokenSpaceGuid.PcdDsaSmmuBaseAddress|0|UINT64|0x00000047
   gHwTokenSpaceGuid.PcdAlgSmmuBaseAddress|0|UINT64|0x00000048
 
+  # Sas Driver PCDs
+  gHwTokenSpaceGuid.PcdSasBaseAddress|0x0|UINT32|0x00000049
+  gHwTokenSpaceGuid.PcdSasCtrlBaseAddress|0x0|UINT32|0x00000050
+
 [PcdsFeatureFlag]
 
 
