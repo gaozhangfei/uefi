@@ -30,6 +30,7 @@
 #include <Library/UncachedMemoryAllocationLib.h>
 
 #include <Protocol/ScsiPassThruExt.h>
+#include <IndustryStandard/Scsi.h>
 
 #define SAS_BASE FixedPcdGet32 (PcdSasBaseAddress)
 #define SAS_CTRL_BASE FixedPcdGet32 (PcdSasCtrlBaseAddress)
@@ -245,6 +246,7 @@ struct hisi_sas_sts {
 
 struct hisi_sas_slot {
 	BOOLEAN used;
+	UINT8 retry;
 	struct hisi_sas_sts *sts;
 };
 
@@ -283,6 +285,6 @@ typedef struct {
 #define upper_32_bits(n) ((UINT32)(((n) >> 16) >> 16))
 #define lower_32_bits(n) ((UINT32)(n))
 
-#define MAX_TARGET_ID 1
+#define MAX_TARGET_ID 4
 
 #endif //SASV1DXE_H

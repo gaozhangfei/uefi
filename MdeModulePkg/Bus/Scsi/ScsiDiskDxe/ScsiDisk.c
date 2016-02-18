@@ -216,6 +216,7 @@ ScsiDiskDriverBindingStart (
   if (ScsiDiskDevice == NULL) {
     return EFI_OUT_OF_RESOURCES;
   }
+DEBUG ((EFI_D_ERROR, "ScsiDiskDriverBindingStart\n"));
 
   Status = gBS->OpenProtocol (
                   Controller,
@@ -277,6 +278,8 @@ ScsiDiskDriverBindingStart (
   MaxRetry = 2;
   for (Index = 0; Index < MaxRetry; Index++) {
     Status = ScsiDiskInquiryDevice (ScsiDiskDevice, &NeedRetry);
+DEBUG ((EFI_D_ERROR, "gzf ScsiDiskInquiryDevice Status=%d NeedRetry=%d\n", Status, NeedRetry));
+
     if (!EFI_ERROR (Status)) {
       break;
     }
@@ -764,6 +767,8 @@ ScsiDiskDetectMedia (
   *MediaChange        = FALSE;
   TimeoutEvt          = NULL;
 
+DEBUG ((EFI_D_ERROR, "ScsiDiskDetectMedia\n"));
+
   CopyMem (&OldMedia, ScsiDiskDevice->BlkIo.Media, sizeof (OldMedia));
 
   Status = gBS->CreateEvent (
@@ -777,7 +782,8 @@ ScsiDiskDetectMedia (
     return Status;
   }
 
-  Status = gBS->SetTimer (TimeoutEvt, TimerRelative, EFI_TIMER_PERIOD_SECONDS(120));
+  //Status = gBS->SetTimer (TimeoutEvt, TimerRelative, EFI_TIMER_PERIOD_SECONDS(120));
+  Status = gBS->SetTimer (TimeoutEvt, TimerRelative, EFI_TIMER_PERIOD_SECONDS(1200));
   if (EFI_ERROR (Status)) {
     goto EXIT;
   }
@@ -788,12 +794,16 @@ ScsiDiskDetectMedia (
   // We limit the upper boundary to 120 seconds.
   //
   while (EFI_ERROR (gBS->CheckEvent (TimeoutEvt))) {
+	  DEBUG ((EFI_D_ERROR, "call ScsiDiskTestUnitReady NumberOfSenseKeys=%d\n", NumberOfSenseKeys));
     Status = ScsiDiskTestUnitReady (
               ScsiDiskDevice,
               &NeedRetry,
               &SenseData,
               &NumberOfSenseKeys
               );
+
+  DEBUG ((EFI_D_ERROR, "ScsiDiskTestUnitReady Status=%d NumberOfSenseKeys=%d\n", Status, NumberOfSenseKeys));
+
     if (!EFI_ERROR (Status)) {
       Status = DetectMediaParsingSenseKeys (
                  ScsiDiskDevice,
@@ -815,6 +825,7 @@ ScsiDiskDetectMedia (
       }
     }
   }
+
 
   if (EFI_ERROR (Status)) {
     goto EXIT;
@@ -967,6 +978,7 @@ ScsiDiskInquiryDevice (
             &InquiryDataLength,
             FALSE
             );
+DEBUG ((EFI_D_ERROR, "gzf 1 ScsiInquiryCommand Status=%d\n", Status));
     //
     // no need to check HostAdapterStatus and TargetStatus
     //
@@ -997,6 +1009,7 @@ ScsiDiskInquiryDevice (
                  TRUE,
                  EFI_SCSI_PAGE_CODE_SUPPORTED_VPD
                  );
+DEBUG ((EFI_D_ERROR, "gzf 2 ScsiInquiryCommandEx Status=%d\n", Status));
       if (!EFI_ERROR (Status)) {
         PageLength = (SupportedVpdPages->PageLength2 << 8)
                    |  SupportedVpdPages->PageLength1;
@@ -1031,6 +1044,7 @@ ScsiDiskInquiryDevice (
                      TRUE,
                      EFI_SCSI_PAGE_CODE_BLOCK_LIMITS_VPD
                      );
+DEBUG ((EFI_D_ERROR, "gzf 3 ScsiInquiryCommandEx Status=%d\n", Status));
           if (!EFI_ERROR (Status)) {
             ScsiDiskDevice->BlkIo.Media->OptimalTransferLengthGranularity = 
               (BlockLimits->OptimalTransferLengthGranularity2 << 8) |
@@ -1102,6 +1116,7 @@ ScsiDiskInquiryDevice (
               &NumberOfSenseKeys,
               TRUE
               );
+DEBUG ((EFI_D_ERROR, "gzf 4 ScsiDiskRequestSenseKeys Status=%d\n", Status));
     if (!EFI_ERROR (Status)) {
       *NeedRetry = TRUE;
       return EFI_DEVICE_ERROR;
@@ -1149,6 +1164,7 @@ ScsiDiskTestUnitReady (
   UINT8       TargetStatus;
   UINT8       Index;
   UINT8       MaxRetry;
+DEBUG ((EFI_D_ERROR, "ScsiDiskTestUnitReady ScsiDiskDevice->SenseDataNumber=%d\n", ScsiDiskDevice->SenseDataNumber));
 
   SenseDataLength     = (UINT8) (ScsiDiskDevice->SenseDataNumber * sizeof (EFI_SCSI_SENSE_DATA));
   *NumberOfSenseKeys  = 0;
@@ -1260,6 +1276,8 @@ DetectMediaParsingSenseKeys (
 {
   BOOLEAN RetryLater;
 
+DEBUG ((EFI_D_ERROR, "DetectMediaParsingSenseKeys NumberOfSenseKeys=%d\n", NumberOfSenseKeys));
+
   //
   // Default is to read capacity, unless..
   //
@@ -1361,6 +1379,7 @@ ScsiDiskReadCapacity (
   UINT32                        DataLength16;
   EFI_SCSI_DISK_CAPACITY_DATA   *CapacityData10;
   EFI_SCSI_DISK_CAPACITY_DATA16 *CapacityData16;
+DEBUG ((EFI_D_ERROR, "ScsiDiskReadCapacity\n"));
 
   CapacityData10 = AllocateAlignedBuffer (ScsiDiskDevice, sizeof (EFI_SCSI_DISK_CAPACITY_DATA));
   if (CapacityData10 == NULL) {
@@ -1398,10 +1417,11 @@ ScsiDiskReadCapacity (
                     &DataLength10,
                     FALSE
                     );
+ DEBUG ((EFI_D_ERROR, "ScsiReadCapacityCommand CommandStatus=%d\n", CommandStatus));
 
   ScsiDiskDevice->Cdb16Byte = FALSE;
-  if ((!EFI_ERROR (CommandStatus)) && (CapacityData10->LastLba3 == 0xff) && (CapacityData10->LastLba2 == 0xff) &&
-      (CapacityData10->LastLba1 == 0xff) && (CapacityData10->LastLba0 == 0xff)) {
+ // if ((!EFI_ERROR (CommandStatus)) && (CapacityData10->LastLba3 == 0xff) && (CapacityData10->LastLba2 == 0xff) &&
+ //     (CapacityData10->LastLba1 == 0xff) && (CapacityData10->LastLba0 == 0xff)) {
     //
     // use Read Capacity (16), Read (16) and Write (16) next when hard disk size > 2TB
     //
@@ -1421,7 +1441,7 @@ ScsiDiskReadCapacity (
                       &DataLength16,
                       FALSE
                       );
-  }
+ // }
 
     //
     // no need to check HostAdapterStatus and TargetStatus
@@ -1724,6 +1744,7 @@ GetMediaInfo (
                                               Capacity10->BlockSize0;
     ScsiDiskDevice->BlkIo.Media->LowestAlignedLba               = 0;
     ScsiDiskDevice->BlkIo.Media->LogicalBlocksPerPhysicalBlock  = 0;
+DEBUG ((EFI_D_ERROR, "gzf !ScsiDiskDevice->Cdb16Byte ScsiDiskDevice->BlkIo.Media->BlockSize=%d\n", ScsiDiskDevice->BlkIo.Media->BlockSize));
   } else {
     Ptr = (UINT8*)&ScsiDiskDevice->BlkIo.Media->LastBlock;
     *Ptr++ = Capacity16->LastLba0;
@@ -2811,6 +2832,8 @@ ScsiDiskIsDriveReady (
   IsReady     = TRUE;
   *RetryLater = FALSE;
   SensePtr    = SenseData;
+ 
+ DEBUG ((EFI_D_ERROR, "ScsiDiskIsDriveReady SenseCounts=%d, SensePtr->Sense_Key=%d SensePtr->Addnl_Sense_Code=%d SensePtr->Addnl_Sense_Code_Qualifier=%d \n", SenseCounts, SensePtr->Sense_Key, SensePtr->Addnl_Sense_Code, SensePtr->Addnl_Sense_Code_Qualifier));
 
   for (Index = 0; Index < SenseCounts; Index++) {
 
