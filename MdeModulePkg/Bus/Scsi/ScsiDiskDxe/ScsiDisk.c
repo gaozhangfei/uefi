@@ -788,6 +788,7 @@ DEBUG ((EFI_D_ERROR, "ScsiDiskDetectMedia\n"));
     goto EXIT;
   }
 
+#if 0 
 //try send start_stop 0x1b
 {
   EFI_SCSI_IO_SCSI_REQUEST_PACKET CommandPacket;
@@ -809,6 +810,7 @@ DEBUG ((EFI_D_ERROR, "ScsiDiskDetectMedia\n"));
   Status                        = ScsiDiskDevice->ScsiIo->ExecuteScsiCommand (ScsiDiskDevice->ScsiIo, &CommandPacket, NULL);
 	
 }
+#endif
 
   //
   // Sending Test_Unit cmd to poll device status.

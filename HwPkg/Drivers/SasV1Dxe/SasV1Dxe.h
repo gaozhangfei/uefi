@@ -250,7 +250,6 @@ struct hisi_sas_sts {
 
 struct hisi_sas_slot {
 	BOOLEAN used;
-	UINT8 retry;
 	struct hisi_sas_sts *sts;
 };
 

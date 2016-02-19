@@ -139,7 +139,7 @@ STATIC EFI_STATUS prepare_cmd (
 	} else {
 		hdr->dw1 |= 0 << CMD_HDR_SSP_FRAME_TYPE_OFF;
 	}
-	
+	DEBUG ((EFI_D_ERROR, "hdr->dw0=0x%x hdr->dw1=0x%x, hdr->dw2=0x%x\n", hdr->dw0, hdr->dw1, hdr->dw2));
 	DEBUG ((EFI_D_ERROR, "Packet->DataDirection=%d\n", Packet->DataDirection));
 	DEBUG ((EFI_D_ERROR, "Packet->SenseDataLength=%d\n", Packet->SenseDataLength));
 	DEBUG ((EFI_D_ERROR, "Buffer=0x%x, BufferSize=%d\n", Buffer, BufferSize));
@@ -194,14 +194,14 @@ STATIC EFI_STATUS prepare_cmd (
 		NanoSecondDelay (100);
 	}
 out:
-	DEBUG ((EFI_D_ERROR, "slot->retry=%d\n", slot->retry));
-
+/*
 	{
 		int i;
 		for (i = 0; i < BufferSize; i++)
 			if (((UINT8 *)Buffer)[i] != 0)
 			DEBUG ((EFI_D_ERROR, "Buffer[%d]=0x%x\n", i, ((UINT8 *)Buffer)[i]));
 	}
+*/
 	
 	asm("dsb  sy");
 	asm("isb  sy");
@@ -221,14 +221,6 @@ out:
 
 	}
 #endif
-
-/*	
-	if ((slot->retry > 0) && (slot->retry < 3)) {
-		DEBUG ((EFI_D_ERROR, "slot->retry=%d EFI_NOT_READY=%d\n", slot->retry, EFI_NOT_READY));
-		return EFI_NOT_READY;
-	}
-*/
-
 	return EFI_SUCCESS;
 }
 
@@ -267,7 +259,8 @@ CheckInterrupts (
 			hba->port_id = (READ_REG32(PHY_PORT_NUM_MA) >> (4 * i)) & 0xf;
 			//setup itct
 			itct->qw0 = 0x355;
-			itct->sas_addr = 0x5000039578d0252e;
+			//itct->sas_addr = 0x5000039578d0252e;
+			itct->sas_addr = 0x5000cca02d035b6d;
 			itct->qw2 = 0;
 
 phyup_exit:
@@ -315,13 +308,10 @@ phyup_exit:
 	//DEBUG ((EFI_D_ERROR, "irq queue=%d idx=%d\n", queue, idx));
 
 			if (data & CMPLT_HDR_ERR_RCRD_XFRD_MSK) {
-				slot->retry++;
 				DEBUG ((EFI_D_ERROR, "CMPLT_HDR_ERR_RCRD_XFRD_MSK data=0x%x\n", data));
 				DEBUG ((EFI_D_ERROR, "slot->sts[0]=0x%x\n", slot->sts->status[0]));
 				DEBUG ((EFI_D_ERROR, "slot->sts[1]=0x%x\n", slot->sts->status[1]));
 				DEBUG ((EFI_D_ERROR, "slot->sts[2]=0x%x\n", slot->sts->status[2]));
-			} else {
-				slot->retry = 0;
 			}
 			{
 				UINT8 *p = (UINT8 *)&slot->sts->status[0];
@@ -506,7 +496,7 @@ STATIC VOID sas_init(SAS_V1_INFO *SasV1Info)
   /* alloc memory */
   struct hisi_hba *hba = SasV1Info->hba;
   int i, s;
-
+#if 0
   DEBUG ((EFI_D_ERROR, "sizeof(struct hisi_sas_cmd_hdr)=0x%x\n", sizeof(struct hisi_sas_cmd_hdr)));
   DEBUG ((EFI_D_ERROR, "sizeof(struct hisi_sas_complete_hdr)=0x%x\n", sizeof(struct hisi_sas_complete_hdr)));
   DEBUG ((EFI_D_ERROR, "sizeof(struct hisi_sas_sts)=0x%x\n", sizeof(struct hisi_sas_sts)));
@@ -516,7 +506,8 @@ STATIC VOID sas_init(SAS_V1_INFO *SasV1Info)
   DEBUG ((EFI_D_ERROR, "sizeof(struct hisi_sas_breakpoint)=0x%x\n", sizeof(struct hisi_sas_breakpoint)));
   DEBUG ((EFI_D_ERROR, "sizeof(struct hisi_sas_itct)=0x%x\n", sizeof(struct hisi_sas_itct)));
   DEBUG ((EFI_D_ERROR, "sizeof(struct hisi_sas_slot)=0x%x\n", sizeof(struct hisi_sas_slot)));
-	
+#endif
+
   for (i = 0; i < QUEUE_CNT; i++) {
 	  /* Delivery queue */
 	  s = sizeof(struct hisi_sas_cmd_hdr) * QUEUE_SLOTS;
@@ -536,6 +527,7 @@ STATIC VOID sas_init(SAS_V1_INFO *SasV1Info)
 	  hba->sge[i] = UncachedAllocateZeroPool(s);
   }
 
+#if 0
   {
 	  int j;
 	  for (j = 0; j < QUEUE_CNT; j++) {
@@ -548,17 +540,20 @@ STATIC VOID sas_init(SAS_V1_INFO *SasV1Info)
 		  }
 	  }
   }
+#endif
 
   s = SLOT_ENTRIES * sizeof(struct hisi_sas_iost);
   hba->iost = UncachedAllocateZeroPool(s);
 
   s = SLOT_ENTRIES * sizeof(struct hisi_sas_breakpoint);
   hba->breakpoint = UncachedAllocateZeroPool(s);
-  
+
+ #if 0 
   for (i = 0; i < SLOT_ENTRIES; i++) {
 	  DEBUG ((EFI_D_ERROR, "&hba->iost[%d]=0x%x\n", i, &hba->iost[i]));
 	  DEBUG ((EFI_D_ERROR, "&hba->breakpoint[%d]=0x%x\n", i, &hba->breakpoint[i]));
   }
+#endif
   
   s = MAX_ITCT_ENTRIES * sizeof(struct hisi_sas_itct);
   hba->itct = UncachedAllocateZeroPool(s);
