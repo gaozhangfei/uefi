@@ -216,7 +216,7 @@ out:
 			SensePtr->Sense_Key = EFI_SCSI_SK_NOT_READY;
 			SensePtr->Addnl_Sense_Code = EFI_SCSI_ASC_NOT_READY;
 			SensePtr->Addnl_Sense_Code_Qualifier = EFI_SCSI_ASCQ_IN_PROGRESS;
-			MicroSecondDelay(1000);
+			//MicroSecondDelay(1000);
 		}
 
 	}

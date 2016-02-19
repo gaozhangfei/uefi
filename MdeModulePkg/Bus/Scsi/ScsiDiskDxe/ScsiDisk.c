@@ -788,6 +788,28 @@ DEBUG ((EFI_D_ERROR, "ScsiDiskDetectMedia\n"));
     goto EXIT;
   }
 
+//try send start_stop 0x1b
+{
+  EFI_SCSI_IO_SCSI_REQUEST_PACKET CommandPacket;
+  UINT8                           Cdb[6];
+  
+  ZeroMem (Cdb, 6);
+  
+  Cdb[0]                        = 0x1b;
+  Cdb[1]                        = 0x1;
+  Cdb[4]                        = 0x1;
+  
+  CommandPacket.CdbLength       = 6;
+  CommandPacket.Cdb             = Cdb;
+  CommandPacket.InDataBuffer    = NULL;
+  CommandPacket.InTransferLength= 0;
+  CommandPacket.OutDataBuffer    = NULL;
+  CommandPacket.OutTransferLength= 0;
+  
+  Status                        = ScsiDiskDevice->ScsiIo->ExecuteScsiCommand (ScsiDiskDevice->ScsiIo, &CommandPacket, NULL);
+	
+}
+
   //
   // Sending Test_Unit cmd to poll device status.
   // If the sense data shows the drive is not ready or reset before, we need poll the device status again.
