@@ -142,8 +142,10 @@
 #define RESET_VALUE		0x7ffff
 
 #define QUEUE_CNT		32
-#define QUEUE_SLOTS		256
-#define SLOT_ENTRIES		8192
+//#define QUEUE_SLOTS		256
+//#define SLOT_ENTRIES		8192
+#define QUEUE_SLOTS		8
+#define SLOT_ENTRIES		256
 #define PHY_CNT			8
 //#define MAX_ITCT_ENTRIES	4096	//fixme: do we really need so many itct?
 #define MAX_ITCT_ENTRIES	1	//only consider 1
@@ -234,10 +236,12 @@ struct hisi_sas_sge {
 	UINT32 page_ctrl_1;
 	UINT32 data_len;
 	UINT32 data_off;
+	UINT32 rsv[2];		// align to 16 bytes
 };
 
 struct hisi_sas_cmd {
-	 UINT8 cmd[76];	//size=76
+	 //UINT8 cmd[76];	//size=76
+	 UINT8 cmd[128];	//size=76
 };
 
 struct hisi_sas_sts {

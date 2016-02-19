@@ -126,14 +126,16 @@ STATIC EFI_STATUS prepare_cmd (
 	if (Packet->DataDirection == EFI_EXT_SCSI_DATA_DIRECTION_READ) {
 		Buffer = Packet->InDataBuffer;
 		BufferSize = Packet->InTransferLength;
-		hdr->dw1 |= 1 << CMD_HDR_SSP_FRAME_TYPE_OFF;
-
-		InvalidateDataCacheRange (Buffer, BufferSize);
+		if (Buffer) {
+			hdr->dw1 |= 1 << CMD_HDR_SSP_FRAME_TYPE_OFF;
+			InvalidateDataCacheRange (Buffer, BufferSize);
+		}
 	
 	} else if (Packet->DataDirection == EFI_EXT_SCSI_DATA_DIRECTION_WRITE) {
 		Buffer = Packet->OutDataBuffer;
 		BufferSize = Packet->OutTransferLength;
-		hdr->dw1 |= 2 << CMD_HDR_SSP_FRAME_TYPE_OFF;
+		if (Buffer)
+			hdr->dw1 |= 2 << CMD_HDR_SSP_FRAME_TYPE_OFF;
 	} else {
 		hdr->dw1 |= 0 << CMD_HDR_SSP_FRAME_TYPE_OFF;
 	}
@@ -203,13 +205,14 @@ out:
 	
 	asm("dsb  sy");
 	asm("isb  sy");
-#if 0	
+#if 1	
 	{
 		UINT8 *p = (UINT8 *)&slot->sts->status[0];
+		UINT32 *pp = &slot->sts->status[0];
 		if (p[26]) {
 			/* hack for spin up */
 			EFI_SCSI_SENSE_DATA *SensePtr = Packet->SenseData; 
-			DEBUG ((EFI_D_ERROR, "p[26]=0x%x HACK \n", p[26]));
+			DEBUG ((EFI_D_ERROR, "p[26]=0x%x pp[6]=0x%x HACK \n", p[26], pp[6]));
 			SensePtr->Sense_Key = EFI_SCSI_SK_NOT_READY;
 			SensePtr->Addnl_Sense_Code = EFI_SCSI_ASC_NOT_READY;
 			SensePtr->Addnl_Sense_Code_Qualifier = EFI_SCSI_ASCQ_IN_PROGRESS;
@@ -503,6 +506,16 @@ STATIC VOID sas_init(SAS_V1_INFO *SasV1Info)
   /* alloc memory */
   struct hisi_hba *hba = SasV1Info->hba;
   int i, s;
+
+  DEBUG ((EFI_D_ERROR, "sizeof(struct hisi_sas_cmd_hdr)=0x%x\n", sizeof(struct hisi_sas_cmd_hdr)));
+  DEBUG ((EFI_D_ERROR, "sizeof(struct hisi_sas_complete_hdr)=0x%x\n", sizeof(struct hisi_sas_complete_hdr)));
+  DEBUG ((EFI_D_ERROR, "sizeof(struct hisi_sas_sts)=0x%x\n", sizeof(struct hisi_sas_sts)));
+  DEBUG ((EFI_D_ERROR, "sizeof(struct hisi_sas_cmd)=0x%x\n", sizeof(struct hisi_sas_cmd)));
+  DEBUG ((EFI_D_ERROR, "sizeof(struct hisi_sas_sge)=0x%x\n", sizeof(struct hisi_sas_sge)));
+  DEBUG ((EFI_D_ERROR, "sizeof(struct hisi_sas_iost)=0x%x\n", sizeof(struct hisi_sas_iost)));
+  DEBUG ((EFI_D_ERROR, "sizeof(struct hisi_sas_breakpoint)=0x%x\n", sizeof(struct hisi_sas_breakpoint)));
+  DEBUG ((EFI_D_ERROR, "sizeof(struct hisi_sas_itct)=0x%x\n", sizeof(struct hisi_sas_itct)));
+  DEBUG ((EFI_D_ERROR, "sizeof(struct hisi_sas_slot)=0x%x\n", sizeof(struct hisi_sas_slot)));
 	
   for (i = 0; i < QUEUE_CNT; i++) {
 	  /* Delivery queue */
@@ -523,11 +536,29 @@ STATIC VOID sas_init(SAS_V1_INFO *SasV1Info)
 	  hba->sge[i] = UncachedAllocateZeroPool(s);
   }
 
+  {
+	  int j;
+	  for (j = 0; j < QUEUE_CNT; j++) {
+		  for (i = 0; i < QUEUE_SLOTS; i++) {
+			  DEBUG ((EFI_D_ERROR, "&hba->sge[%d][%d]=0x%x\n", j, i, &hba->sge[j][i]));
+			  DEBUG ((EFI_D_ERROR, "&hba->cmd_hdr[%d][%d]=0x%x\n", j, i, &hba->cmd_hdr[j][i]));
+			  DEBUG ((EFI_D_ERROR, "&hba->complete_hdr[%d][%d]=0x%x\n", j, i, &hba->complete_hdr[j][i]));
+			  DEBUG ((EFI_D_ERROR, "&hba->status_buf[%d][%d]=0x%x\n", j, i, &hba->status_buf[j][i]));
+			  DEBUG ((EFI_D_ERROR, "&hba->command_table[%d][%d]=0x%x\n", j, i, &hba->command_table[j][i]));
+		  }
+	  }
+  }
+
   s = SLOT_ENTRIES * sizeof(struct hisi_sas_iost);
   hba->iost = UncachedAllocateZeroPool(s);
 
   s = SLOT_ENTRIES * sizeof(struct hisi_sas_breakpoint);
   hba->breakpoint = UncachedAllocateZeroPool(s);
+  
+  for (i = 0; i < SLOT_ENTRIES; i++) {
+	  DEBUG ((EFI_D_ERROR, "&hba->iost[%d]=0x%x\n", i, &hba->iost[i]));
+	  DEBUG ((EFI_D_ERROR, "&hba->breakpoint[%d]=0x%x\n", i, &hba->breakpoint[i]));
+  }
   
   s = MAX_ITCT_ENTRIES * sizeof(struct hisi_sas_itct);
   hba->itct = UncachedAllocateZeroPool(s);

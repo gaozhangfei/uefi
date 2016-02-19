@@ -782,8 +782,8 @@ DEBUG ((EFI_D_ERROR, "ScsiDiskDetectMedia\n"));
     return Status;
   }
 
-  //Status = gBS->SetTimer (TimeoutEvt, TimerRelative, EFI_TIMER_PERIOD_SECONDS(120));
-  Status = gBS->SetTimer (TimeoutEvt, TimerRelative, EFI_TIMER_PERIOD_SECONDS(1200));
+  Status = gBS->SetTimer (TimeoutEvt, TimerRelative, EFI_TIMER_PERIOD_SECONDS(120));
+  //Status = gBS->SetTimer (TimeoutEvt, TimerRelative, EFI_TIMER_PERIOD_SECONDS(1200));
   if (EFI_ERROR (Status)) {
     goto EXIT;
   }
@@ -802,7 +802,7 @@ DEBUG ((EFI_D_ERROR, "ScsiDiskDetectMedia\n"));
               &NumberOfSenseKeys
               );
 
-  DEBUG ((EFI_D_ERROR, "ScsiDiskTestUnitReady Status=%d NumberOfSenseKeys=%d\n", Status, NumberOfSenseKeys));
+  DEBUG ((EFI_D_ERROR, "gzf ScsiDiskTestUnitReady Status=%d NumberOfSenseKeys=%d\n", Status, NumberOfSenseKeys));
 
     if (!EFI_ERROR (Status)) {
       Status = DetectMediaParsingSenseKeys (
