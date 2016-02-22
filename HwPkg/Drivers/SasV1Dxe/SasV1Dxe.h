@@ -112,6 +112,8 @@
 #define TX_ID_DWORD4			(PORT_BASE + 0xaC)
 #define TX_ID_DWORD5			(PORT_BASE + 0xb0)
 #define TX_ID_DWORD6			(PORT_BASE + 0xb4)
+#define RX_IDAF_DWORD3                  (PORT_BASE + 0xd0)
+#define RX_IDAF_DWORD4                  (PORT_BASE + 0xd4)
 #define RXOP_CHECK_CFG_H		(PORT_BASE + 0xfc)
 #define DONE_RECEIVED_TIME		(PORT_BASE + 0x12c)
 #define CON_CFG_DRIVER			(PORT_BASE + 0x130)

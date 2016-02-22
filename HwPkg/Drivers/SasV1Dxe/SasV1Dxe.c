@@ -259,8 +259,8 @@ CheckInterrupts (
 			hba->port_id = (READ_REG32(PHY_PORT_NUM_MA) >> (4 * i)) & 0xf;
 			//setup itct
 			itct->qw0 = 0x355;
-			//itct->sas_addr = 0x5000039578d0252e;
-			itct->sas_addr = 0x5000cca02d035b6d;
+			itct->sas_addr = PHY_READ_REG32(RX_IDAF_DWORD3, i);
+			itct->sas_addr = itct->sas_addr << 32 | PHY_READ_REG32(RX_IDAF_DWORD4, i);
 			itct->qw2 = 0;
 
 phyup_exit:
