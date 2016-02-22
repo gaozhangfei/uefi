@@ -993,13 +993,6 @@ ScsiExecuteSCSICommand (
                                           ExtRequestPacket,
                                           Event
                                           );
- 
- DEBUG ((EFI_D_ERROR, "ExtScsiPassThru->PassThru Status=%d\n", Status));
-/*
-      if (EFI_ERROR(Status)) {
-        return Status;
-      }
-     */
   } else {
 
     mWorkingBuffer = AllocatePool (sizeof(EFI_SCSI_PASS_THRU_SCSI_REQUEST_PACKET));

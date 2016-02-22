@@ -79,7 +79,6 @@ STATIC EFI_STATUS prepare_cmd (
 	int queue = hba->queue;
 	UINT32 r, w = 0, slot_idx = 0;
 	
-
 	while (1) {
 		w = READ_REG32(DLVRY_Q_0_WR_PTR + (queue * 0x14));
 		r = READ_REG32(DLVRY_Q_0_RD_PTR + (queue * 0x14));
@@ -130,7 +129,6 @@ STATIC EFI_STATUS prepare_cmd (
 			hdr->dw1 |= 1 << CMD_HDR_SSP_FRAME_TYPE_OFF;
 			InvalidateDataCacheRange (Buffer, BufferSize);
 		}
-	
 	} else if (Packet->DataDirection == EFI_EXT_SCSI_DATA_DIRECTION_WRITE) {
 		Buffer = Packet->OutDataBuffer;
 		BufferSize = Packet->OutTransferLength;
@@ -139,10 +137,11 @@ STATIC EFI_STATUS prepare_cmd (
 	} else {
 		hdr->dw1 |= 0 << CMD_HDR_SSP_FRAME_TYPE_OFF;
 	}
-	DEBUG ((EFI_D_ERROR, "hdr->dw0=0x%x hdr->dw1=0x%x, hdr->dw2=0x%x\n", hdr->dw0, hdr->dw1, hdr->dw2));
-	DEBUG ((EFI_D_ERROR, "Packet->DataDirection=%d\n", Packet->DataDirection));
-	DEBUG ((EFI_D_ERROR, "Packet->SenseDataLength=%d\n", Packet->SenseDataLength));
-	DEBUG ((EFI_D_ERROR, "Buffer=0x%x, BufferSize=%d\n", Buffer, BufferSize));
+
+	//DEBUG ((EFI_D_ERROR, "hdr->dw0=0x%x hdr->dw1=0x%x, hdr->dw2=0x%x\n", hdr->dw0, hdr->dw1, hdr->dw2));
+	//DEBUG ((EFI_D_ERROR, "Packet->DataDirection=%d\n", Packet->DataDirection));
+	//DEBUG ((EFI_D_ERROR, "Packet->SenseDataLength=%d\n", Packet->SenseDataLength));
+	//DEBUG ((EFI_D_ERROR, "Buffer=0x%x, BufferSize=%d\n", Buffer, BufferSize));
 
 	if (Buffer != NULL) {
 		//only 1 entry
@@ -159,9 +158,9 @@ STATIC EFI_STATUS prepare_cmd (
 	hdr->sts_buffer_addr = (UINT64)sts;
 
 	CopyMem (&cmd->cmd[36], Packet->Cdb, Packet->CdbLength);
-	
+#if 1	
 	//DEBUG ((EFI_D_ERROR, "cmd->cmd[36]=0x%x Packet->Cdb[0]=0x%x Packet->CdbLength=%d\n", cmd->cmd[36], ((UINT8 *) Packet->Cdb)[0], Packet->CdbLength));
-	DEBUG ((EFI_D_ERROR, "Packet->CdbLength=%d Packet->Cdb[0]=0x%x\n", Packet->CdbLength, ((UINT8 *) Packet->Cdb)[0]));
+	//DEBUG ((EFI_D_ERROR, "Packet->CdbLength=%d Packet->Cdb[0]=0x%x\n", Packet->CdbLength, ((UINT8 *) Packet->Cdb)[0]));
 	{
 		int i;
 		/*
@@ -175,7 +174,7 @@ STATIC EFI_STATUS prepare_cmd (
 		DEBUG ((EFI_D_ERROR, "]\n"));
 
 	}
-	
+#endif	
 	if (Packet->DataDirection == EFI_EXT_SCSI_DATA_DIRECTION_WRITE)
 		WriteBackDataCacheRange (Buffer, BufferSize);
 
@@ -188,12 +187,12 @@ STATIC EFI_STATUS prepare_cmd (
 	//waiting for slot free, dma completed
 	while (slot->used) {
 		if (READ_REG32(OQ_INT_SRC) & BIT(queue)) {
-			DEBUG ((EFI_D_ERROR, "slot->used=%d\n", slot->used));
-			goto out;
+			//DEBUG ((EFI_D_ERROR, "slot->used=%d\n", slot->used));
+			break;
 		}
 		NanoSecondDelay (100);
 	}
-out:
+
 /*
 	{
 		int i;
@@ -203,8 +202,6 @@ out:
 	}
 */
 	
-	asm("dsb  sy");
-	asm("isb  sy");
 #if 1	
 	{
 		UINT8 *p = (UINT8 *)&slot->sts->status[0];
@@ -212,11 +209,11 @@ out:
 		if (p[26]) {
 			/* hack for spin up */
 			EFI_SCSI_SENSE_DATA *SensePtr = Packet->SenseData; 
-			DEBUG ((EFI_D_ERROR, "p[26]=0x%x pp[6]=0x%x HACK \n", p[26], pp[6]));
+			DEBUG ((EFI_D_ERROR, "p[26]=0x%x pp[6]=0x%x\n", p[26], pp[6]));
 			SensePtr->Sense_Key = EFI_SCSI_SK_NOT_READY;
 			SensePtr->Addnl_Sense_Code = EFI_SCSI_ASC_NOT_READY;
 			SensePtr->Addnl_Sense_Code_Qualifier = EFI_SCSI_ASCQ_IN_PROGRESS;
-			//MicroSecondDelay(1000);
+			MicroSecondDelay(1000000);
 		}
 
 	}
@@ -305,7 +302,6 @@ phyup_exit:
 			slot->used = FALSE;
 			if (++rd >= QUEUE_SLOTS)
 				rd = 0;
-	//DEBUG ((EFI_D_ERROR, "irq queue=%d idx=%d\n", queue, idx));
 
 			if (data & CMPLT_HDR_ERR_RCRD_XFRD_MSK) {
 				DEBUG ((EFI_D_ERROR, "CMPLT_HDR_ERR_RCRD_XFRD_MSK data=0x%x\n", data));
@@ -313,12 +309,13 @@ phyup_exit:
 				DEBUG ((EFI_D_ERROR, "slot->sts[1]=0x%x\n", slot->sts->status[1]));
 				DEBUG ((EFI_D_ERROR, "slot->sts[2]=0x%x\n", slot->sts->status[2]));
 			}
+			/*
 			{
 				UINT8 *p = (UINT8 *)&slot->sts->status[0];
 				DEBUG ((EFI_D_ERROR, "irq p[26]=0x%x\n", p[26]));
-
+				DEBUG ((EFI_D_ERROR, "slot->sts[6]=0x%x\n", slot->sts->status[6]));
 			}
-			DEBUG ((EFI_D_ERROR, "slot->sts[6]=0x%x\n", slot->sts->status[6]));
+			*/
 		}
 		/* update rd */
 		WRITE_REG32(COMPL_Q_0_RD_PTR + (0x14 * queue), rd);
