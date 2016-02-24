@@ -158,7 +158,7 @@ STATIC EFI_STATUS prepare_cmd (
 	hdr->sts_buffer_addr = (UINT64)sts;
 
 	CopyMem (&cmd->cmd[36], Packet->Cdb, Packet->CdbLength);
-#if 1	
+#if 0	
 	//DEBUG ((EFI_D_ERROR, "cmd->cmd[36]=0x%x Packet->Cdb[0]=0x%x Packet->CdbLength=%d\n", cmd->cmd[36], ((UINT8 *) Packet->Cdb)[0], Packet->CdbLength));
 	//DEBUG ((EFI_D_ERROR, "Packet->CdbLength=%d Packet->Cdb[0]=0x%x\n", Packet->CdbLength, ((UINT8 *) Packet->Cdb)[0]));
 	{
@@ -193,31 +193,19 @@ STATIC EFI_STATUS prepare_cmd (
 		NanoSecondDelay (100);
 	}
 
-/*
-	{
-		int i;
-		for (i = 0; i < BufferSize; i++)
-			if (((UINT8 *)Buffer)[i] != 0)
-			DEBUG ((EFI_D_ERROR, "Buffer[%d]=0x%x\n", i, ((UINT8 *)Buffer)[i]));
-	}
-*/
-	
-#if 1	
 	{
 		UINT8 *p = (UINT8 *)&slot->sts->status[0];
-		UINT32 *pp = &slot->sts->status[0];
+		EFI_SCSI_SENSE_DATA *SensePtr = Packet->SenseData; 
 		if (p[26]) {
 			/* hack for spin up */
-			EFI_SCSI_SENSE_DATA *SensePtr = Packet->SenseData; 
-			DEBUG ((EFI_D_ERROR, "p[26]=0x%x pp[6]=0x%x\n", p[26], pp[6]));
 			SensePtr->Sense_Key = EFI_SCSI_SK_NOT_READY;
 			SensePtr->Addnl_Sense_Code = EFI_SCSI_ASC_NOT_READY;
 			SensePtr->Addnl_Sense_Code_Qualifier = EFI_SCSI_ASCQ_IN_PROGRESS;
 			MicroSecondDelay(1000000);
+		} else {
+			ZeroMem (SensePtr, sizeof (EFI_SCSI_SENSE_DATA));
 		}
-
 	}
-#endif
 	return EFI_SUCCESS;
 }
 
