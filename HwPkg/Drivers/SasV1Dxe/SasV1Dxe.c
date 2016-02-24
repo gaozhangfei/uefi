@@ -267,6 +267,17 @@ phyup_exit:
 			val &= ~CHL_INT0_PHYCTRL_NOTRDY;
 			PHY_WRITE_REG32(CHL_INT0, i, val);
 			PHY_WRITE_REG32(CHL_INT0_MSK, i, 0x3ce3ee);
+
+			//need notify
+			val = PHY_READ_REG32(SL_CONTROL, i);
+			val |= SL_CONTROL_NOTIFY_EN;
+			PHY_WRITE_REG32(SL_CONTROL, i, val);
+			MicroSecondDelay(1000000);
+
+			val = PHY_READ_REG32(SL_CONTROL, i);
+			val &= ~SL_CONTROL_NOTIFY_EN;
+			PHY_WRITE_REG32(SL_CONTROL, i, val);
+
 			return;
 		}
 	}

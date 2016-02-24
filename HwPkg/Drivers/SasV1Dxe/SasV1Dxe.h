@@ -105,6 +105,8 @@
 #define PHY_RATE_NEGO			(PORT_BASE + 0x30)
 #define PHY_PCN				(PORT_BASE + 0x44)
 #define SL_TOUT_CFG			(PORT_BASE + 0x8c)
+#define SL_CONTROL                      (PORT_BASE + 0x94)
+#define SL_CONTROL_NOTIFY_EN		BIT0
 #define TX_ID_DWORD0			(PORT_BASE + 0x9c)
 #define TX_ID_DWORD1			(PORT_BASE + 0xa0)
 #define TX_ID_DWORD2			(PORT_BASE + 0xa4)
