@@ -346,7 +346,7 @@ STATIC VOID hisi_sas_v1_init(struct hisi_hba *hba)
 		phy_ctrl |= PHY_CTRL_RESET;
 		PHY_WRITE_REG32(PHY_CTRL, i, phy_ctrl);
 	}
-	MicroSecondDelay(1);
+	MicroSecondDelay(1000);
 
 	/* Ensure DMA tx & rx idle */
 	for (i = 0; i < PHY_CNT; i++) {
@@ -372,14 +372,12 @@ STATIC VOID hisi_sas_v1_init(struct hisi_hba *hba)
 	/* Apply reset and disable clock */
 	CTRL_WRITE_REG32(CTRL_RESET, RESET_VALUE);
 	CTRL_WRITE_REG32(CTRL_CLK_DIS, RESET_VALUE);
-	MicroSecondDelay(1);
+	MicroSecondDelay(1000);
 
 	/* De-reset and enable clock */
 	CTRL_WRITE_REG32(CTRL_DRESET, RESET_VALUE);
 	CTRL_WRITE_REG32(CTRL_CLK_ENA, RESET_VALUE);
-	MicroSecondDelay(1);
-	
-	MicroSecondDelay(100);
+	MicroSecondDelay(1000);
 
 	//init_reg_v1_hw
 	WRITE_REG32(DLVRY_QUEUE_ENABLE, 0xffffffff);
