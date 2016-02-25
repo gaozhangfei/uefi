@@ -74,6 +74,7 @@ STATIC EFI_STATUS prepare_cmd (
 	struct hisi_sas_sge	*sge;
 	struct hisi_sas_sts	*sts;
 	struct hisi_sas_cmd	*cmd;
+	EFI_SCSI_SENSE_DATA *SensePtr = Packet->SenseData; 
 	VOID   *Buffer = NULL;
 	UINT32 BufferSize = 0;
 	int queue = hba->queue;
@@ -103,6 +104,7 @@ STATIC EFI_STATUS prepare_cmd (
 
 	ZeroMem (cmd, sizeof (struct hisi_sas_cmd));
 	ZeroMem (sts, sizeof (struct hisi_sas_sts));
+	ZeroMem (SensePtr, sizeof (EFI_SCSI_SENSE_DATA));
 
 	slot->used = TRUE;
 	slot->sts = sts;
@@ -195,15 +197,12 @@ STATIC EFI_STATUS prepare_cmd (
 
 	{
 		UINT8 *p = (UINT8 *)&slot->sts->status[0];
-		EFI_SCSI_SENSE_DATA *SensePtr = Packet->SenseData; 
 		if (p[26]) {
 			/* hack for spin up */
 			SensePtr->Sense_Key = EFI_SCSI_SK_NOT_READY;
 			SensePtr->Addnl_Sense_Code = EFI_SCSI_ASC_NOT_READY;
 			SensePtr->Addnl_Sense_Code_Qualifier = EFI_SCSI_ASCQ_IN_PROGRESS;
 			MicroSecondDelay(1000000);
-		} else {
-			ZeroMem (SensePtr, sizeof (EFI_SCSI_SENSE_DATA));
 		}
 	}
 	return EFI_SUCCESS;

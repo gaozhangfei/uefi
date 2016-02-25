@@ -146,10 +146,8 @@
 #define RESET_VALUE		0x7ffff
 
 #define QUEUE_CNT		32
-//#define QUEUE_SLOTS		256
-//#define SLOT_ENTRIES		8192
-#define QUEUE_SLOTS		8
-#define SLOT_ENTRIES		256
+#define QUEUE_SLOTS		256
+#define SLOT_ENTRIES		8192
 #define PHY_CNT			8
 //#define MAX_ITCT_ENTRIES	4096	//fixme: do we really need so many itct?
 #define MAX_ITCT_ENTRIES	1	//only consider 1
